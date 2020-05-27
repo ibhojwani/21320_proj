@@ -9,8 +9,8 @@ import pandas as pd
 
 
 DATA_DIR = "data/"
-COVID_PATH = "data/us-counties.csv"
-INDUSTRY_PATH = "data/CAINC5N__ALL_AREAS_2001_2018.csv"
+COVID_PATH = "data/covid_raw.csv"
+INDUSTRY_PATH = "data/industry_raw.csv"
 
 # Set it to None to display all columns in the dataframe
 pd.set_option('display.max_columns', None)
