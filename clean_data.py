@@ -25,8 +25,13 @@ def clean_covid(outfile=""):
     df = df.drop(df.columns[5:], axis=1)
     df = df.drop(["county", "state"], axis=1)
 
+    # pivot rows to get panel data
     df = df.pivot_table(index="fips", columns="date", values="cases")
+    df["statefips"] = df.index.str[0:2] + "000"
 
+    # temp solve NA values by replacing w 0
+    df = df.fillna(0)
+    
     if outfile:
         df.to_csv(DATA_DIR + outfile, index=True)
     return df
