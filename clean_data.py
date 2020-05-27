@@ -9,21 +9,26 @@ import pandas as pd
 
 
 DATA_DIR = "data/"
-COVID_PATH = "data/COVID-19_Historical_Data_Table.csv"
+COVID_PATH = "data/us-counties.csv"
 INDUSTRY_PATH = "data/CAINC5N__ALL_AREAS_2001_2018.csv"
 
 # Set it to None to display all columns in the dataframe
 pd.set_option('display.max_columns', None)
 
 
-def clean_covid():
+def clean_covid(outfile=""):
     """
     """
-    df = pd.read_csv(COVID_PATH)
+    df = pd.read_csv(COVID_PATH, dtype={"fips": str})
 
-    df = df[df["GEO"] == "County"]
-    df_state = df[df["GEO"] == "State"]
+    # Only keep fips, date, and cases
+    df = df.drop(df.columns[5:], axis=1)
+    df = df.drop(["county", "state"], axis=1)
 
+    df = df.pivot_table(index="fips", columns="date", values="cases")
+
+    if outfile:
+        df.to_csv(DATA_DIR + outfile, index=True)
     return df
 
 
@@ -61,12 +66,12 @@ def clean_industry(outfile=""):
     df = df.drop(["Unit", "2018"], axis=1)
 
     # Final cleaning
-    df = df.pivot(columns="LineCode", values="Value")  # pivot codes to cols
+    df = df.pivot_table(index="GeoFIPS", columns="LineCode", values="Value")  # pivot codes to cols
     df.columns = [str(round(col)) for col in df.columns]  # col names to str
     df = df.loc[~df["10"].isna()]  # drop counties with empty data
     
     # to file
     if outfile:
-        df.to_csv(DATA_DIR + outfile, index=False)
+        df.to_csv(DATA_DIR + outfile, index=True)
 
     return df
