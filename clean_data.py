@@ -19,7 +19,7 @@ pd.set_option('display.max_columns', None)
 def clean_covid():
     """
     """
-    df = load_data(COVID_PATH)
+    df = pd.read_csv(COVID_PATH)
 
     df = df[df["GEO"] == "County"]
     df_state = df[df["GEO"] == "State"]
