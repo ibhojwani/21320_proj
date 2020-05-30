@@ -44,10 +44,10 @@ def clean_covid(outfile=""):
     df = np.log(df)
     df = df.diff(axis=1)
 
-    # deal with persistant negative growth rates
-    df = df.fillna(np.infty)
-    df[df < 0] = np.nan
-    df = df.interpolate(axis=1)
+    # # deal with persistant negative growth rates w/ interpolation
+    # df = df.fillna(np.infty)
+    # df[df < 0] = np.nan
+    # df = df.interpolate(axis=1)
 
     df[df == np.infty] = np.nan
 
