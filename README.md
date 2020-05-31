@@ -87,7 +87,7 @@
  (82, 'day_82'),
  (83, 'day_83'),
  (84, 'day_84'),
- (85, 'lockdown start'),
+ (85, 'lockdown_delta'),
  (86, 'population'),
  (87, 'forestry, fishing, and related activities'),
  (88, 'mining, quarrying, and oil and gas extraction'),
