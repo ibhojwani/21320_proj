@@ -28,13 +28,16 @@ def clean_covid(outfile=""):
     df["cases"] = df["cases"] + df["deaths"]
     df = df.drop(df.columns[5:], axis=1)
     df = df.drop(["county", "state"], axis=1)
-
     # pivot rows to get panel data
     df = df.pivot_table(index="fips", columns="date", values="cases")
 
+    return df
     # left align and drop values below threshold
     df = df.fillna(0)
-    df = df.apply(realign_covid_row, axis=1)
+    df["start_date"] = ""
+    df = df.drop("start_date", axis=1).apply(realign_covid_row, axis=1)
+    start_dates = df[df.columns[-1]]
+    df = df.drop(df.columns[-1], axis=1)
 
     # drop cols/rows with all nan
     df = df.dropna(how="all", axis=1)
@@ -60,6 +63,10 @@ def clean_covid(outfile=""):
     # taking difference sets day 0 to nan
     df = df.drop("day_0", axis=1)  
 
+    # finish start_date col
+    df["start_date"] = start_dates
+    df["start_date"] = pd.to_datetime(df["start_date"])
+
     if outfile:
         df.to_csv(DATA_DIR + outfile, index=True)
     return df
@@ -70,12 +77,15 @@ def realign_covid_row(row):
     """
     # left align data
     zero_count = 0
-    for i in row:
-        if i < STARTING_CASES:
+    start_date = row.index[0]
+
+    for cases, day in zip(row, row.index):
+        if cases < STARTING_CASES:
             zero_count += 1
         else:
+            start_date = day
             break
-    row[:] = list(row[zero_count:]) + [np.nan] * zero_count
 
-    # add back statefips
-    return row
+    row = list(row[zero_count:]) + [np.nan] * zero_count + [start_date]
+
+    return pd.Series(row)
