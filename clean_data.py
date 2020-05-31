@@ -31,7 +31,6 @@ def clean_covid(outfile=""):
     # pivot rows to get panel data
     df = df.pivot_table(index="fips", columns="date", values="cases")
 
-    return df
     # left align and drop values below threshold
     df = df.fillna(0)
     df["start_date"] = ""
