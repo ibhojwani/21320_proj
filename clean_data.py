@@ -13,7 +13,7 @@ COVID_PATH = "data/covid_raw.csv"
 INDUSTRY_PATH = "data/industry_raw.csv"
 
 # number of cases to mark the beginning of the outbreak in a county
-STARTING_CASES = 15
+STARTING_CASES = 6
 
 # Set it to None to display all columns in the dataframe
 pd.set_option('display.max_columns', None)
@@ -31,7 +31,6 @@ def clean_covid(outfile=""):
     # pivot rows to get panel data
     df = df.pivot_table(index="fips", columns="date", values="cases")
 
-    return df
     # left align and drop values below threshold
     df = df.fillna(0)
     df["start_date"] = ""
