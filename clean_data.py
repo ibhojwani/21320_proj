@@ -13,7 +13,7 @@ COVID_PATH = "data/covid_raw.csv"
 INDUSTRY_PATH = "data/industry_raw.csv"
 
 # number of cases to mark the beginning of the outbreak in a county
-STARTING_CASES = 15
+STARTING_CASES = 6
 
 # Set it to None to display all columns in the dataframe
 pd.set_option('display.max_columns', None)
