@@ -13,7 +13,7 @@ FIPS = 0
 COVID_DATA = range(1, 50)  # leaving out cols w/ less than half counties
 LOCKDOWN = 99
 POPULATION = 100
-IND_DATA = range(101, 126)
+IND_DATA = range(101, 125)
 
 
 def load_data(path):

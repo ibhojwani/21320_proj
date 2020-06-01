@@ -25,7 +25,6 @@ def clean_covid(outfile=""):
     df = pd.read_csv(COVID_PATH, dtype={"fips": str})
 
     # Only keep fips, date, and cases
-    df["cases"] = df["cases"] + df["deaths"]
     df = df.drop(df.columns[5:], axis=1)
     df = df.drop(["county", "state"], axis=1)
     # pivot rows to get panel data
