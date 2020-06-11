@@ -23,7 +23,7 @@ def clean_covid(outfile=""):
     """
     """
     df = pd.read_csv(COVID_PATH, dtype={"fips": str})
-
+    df["cases"] = df["deaths"]
     # Only keep fips, date, and cases
     df = df.drop(df.columns[5:], axis=1)
     df = df.drop(["county", "state"], axis=1)

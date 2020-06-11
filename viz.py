@@ -119,3 +119,43 @@ def keep_largest(col, sig_counts):
 
     return col
 
+
+def get_day_counts(df, covid_range):
+    """
+    """
+    plt.close()
+    num_days = (~df[df.columns[covid_range]].isna()).astype(int).sum(axis=1).to_numpy()
+
+    counts = []
+    for i in range(min(num_days) - 1, max(num_days) + 1):
+        counts.append(sum((num_days >= i)))
+    
+    sbn.lineplot(x=range(min(num_days)-1, max(num_days)+1), y=counts)
+    plt.title("Number of Counties with Outbreaks of Given Length")
+    plt.xlabel("Length of outbreak")
+    plt.ylabel("Number of counties")
+    plt.plot([50, 50], [0, 2500], linewidth=2, color="black")
+
+
+    return None
+
+
+def get_lag_diffs(df):
+    """
+    """
+    plt.close()
+    datas = []
+    df = df[df.columns[39:]]
+    df = df.fillna(0)
+
+    for i in range(1, 21):
+        df["count"] = ((df > 0) & (df <= i)).astype(int).sum(axis=1)
+        datas.append(df["count"].mean())
+    
+    sbn.lineplot(x=range(1, 21), y=datas)
+    plt.xlabel("Minimum number of cases threshold")
+    plt.ylabel("Average days till threshold hit")
+    plt.title("Average number of days for counties to hit a number of cases")
+    plt.plot([6, 6], [8, 21], linewidth=2, color="black")
+
+    plt.savefig("figs/lags.png")
