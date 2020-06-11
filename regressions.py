@@ -40,7 +40,7 @@ def model_1(df):
     reg_dat = df[x_cols]
     reg_dat = sm.add_constant(reg_dat)
 
-    models, signif_vars, signif_coefs = run_regs(reg_dat, df, "Basic Model")
+    models, robust, signif_vars, signif_coefs = run_regs(reg_dat, df, "Basic Model")
 
     coefs_df = get_mean_coefs(signif_coefs, signif_vars)
 
@@ -49,7 +49,7 @@ def model_1(df):
     # create count how many days each industry is significant for
     industry_counts = get_industry_counts(signif_vars)
     
-    return models, coefs_df
+    return models, robust, coefs_df
         
 
 def model_lockdown(df):
@@ -63,20 +63,20 @@ def model_lockdown(df):
     reg_dat = df[x_cols]
     reg_dat = sm.add_constant(reg_dat)
 
-    models, signif_vars, signif_coefs = run_regs(reg_dat, df, "Lockdown Model")
+    models, robust, signif_vars, signif_coefs = run_regs(reg_dat, df, "Lockdown Model")
 
     coefs_df = get_mean_coefs(signif_coefs, signif_vars)
     save_coefs(coefs_df, "Lockdown Model")
-
     # create count how many days each industry is significant for
     industry_counts = get_industry_counts(signif_vars)
     
-    return models, coefs_df
+    return models, robust, coefs_df
 
 
 def run_regs(reg_dat, df, mod_name):
     """
     """
+    robust = []
     models = []
     signif_vars_d = {}
     signif_coefs_d = {}
@@ -84,18 +84,26 @@ def run_regs(reg_dat, df, mod_name):
     for day in COVID_DATA:
         reg_dat["Y"] = df[df.columns[day]] 
         reg_dat = reg_dat[~reg_dat["Y"].isna()]
+        Y = reg_dat["Y"]
+        reg_dat = reg_dat.drop("Y", axis=1)
 
-        mod = sm.OLS(reg_dat["Y"], reg_dat.drop("Y", axis=1))
+        mod = sm.OLS(Y, reg_dat)
         results = mod.fit()
         signif_vars, signif_coefs = get_sig_industries(results)
 
+        temp_dat = reg_dat[signif_vars]
+        mod = sm.OLS(Y, temp_dat)
+        rob_res = mod.fit()
+
+        robust.append(rob_res)
         models.append(results)
         signif_vars_d[day] = signif_vars
         signif_coefs_d[day] = signif_coefs
 
         write_table(results, day, mod_name)
+        write_table(rob_res, day, mod_name + "robustness")
 
-    return models, signif_vars_d, signif_coefs_d
+    return models, robust, signif_vars_d, signif_coefs_d
 
 
 def get_industry_counts(signif_vars):
@@ -138,13 +146,11 @@ def get_mean_coefs(signif_coefs, signif_vars):
         for i, industry in enumerate(signif_vars[day]):
             industry_counts[industry] = industry_counts.get(industry, 0) + 1
             industry_dict[industry] = industry_dict.get(industry, 0) + signif_coefs[day][i]
-            if signif_coefs[day][i] > 2:
-                print("howoh")
     
     for industry, coef_sum in industry_dict.items():
         rv[industry] = coef_sum / industry_counts[industry]
 
-    rv_df = pd.DataFrame([pd.Series(rv), pd.Series(industry_counts)]).transpose()
+    rv_df = pd.DataFrame([pd.Series(industry_counts)]).transpose()
 
     return rv_df
 
