@@ -71,7 +71,8 @@ def clean_covid(outfile=""):
 
 
 def realign_covid_row(row):
-    """
+    """ Removes leading values below cutoff, so first col is first day of outbreak
+        that is above cutoff number of infected
     """
     # left align data
     zero_count = 0

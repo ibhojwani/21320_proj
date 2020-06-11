@@ -132,7 +132,7 @@ def keep_largest(col, sig_counts):
 
 
 def get_day_counts(df, covid_range):
-    """
+    """ Histogram of the length of outbreak in each county (till present)
     """
     plt.close()
     num_days = (~df[df.columns[covid_range]].isna()).astype(int).sum(axis=1).to_numpy()
@@ -152,7 +152,7 @@ def get_day_counts(df, covid_range):
 
 
 def get_lag_diffs(df):
-    """
+    """ Plots average time it took for counties to hit certain numbers of people sick
     """
     plt.close()
     datas = []
