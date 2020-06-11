@@ -49,7 +49,7 @@ def model_1(df):
     coefs_df = get_mean_coefs(signif_coefs, signif_vars, rob_vars)
 
     # save results to file
-    save_coefs(coefs_df, "Basic Model")
+    save_coefs(coefs_df.drop(coefs_df.columns[0], axis=1), "Basic Model")
 
     return models, robust, coefs_df
         
@@ -73,7 +73,7 @@ def model_lockdown(df):
 
     # compile significant industry data and save
     coefs_df = get_mean_coefs(signif_coefs, signif_vars, rob_vars)
-    save_coefs(coefs_df, "Lockdown Model")
+    save_coefs(coefs_df.drop(coefs_df.columns[0], axis=1), "Lockdown Model")
     
     return models, robust, coefs_df
 
@@ -165,15 +165,15 @@ def get_mean_coefs(signif_coefs, signif_vars, rob_vars):
         # get number of days of significance
         for i, industry in enumerate(signif_vars[day]):
             industry_counts[industry] = industry_counts.get(industry, 0) + 1
-            # industry_dict[industry] = industry_dict.get(industry, 0) + signif_coefs[day][i]
+            industry_dict[industry] = industry_dict.get(industry, 0) + signif_coefs[day][i]
         for i, industry in enumerate(rob_vars[day]):
             rob_counts[industry] = rob_counts.get(industry, 0) + 1
 
     # calc average coeff across all days
-    # for industry, coef_sum in industry_dict.items():
-    #     rv[industry] = coef_sum / industry_counts[industry]
+    for industry, coef_sum in industry_dict.items():
+        rv[industry] = coef_sum / industry_counts[industry]
 
-    rv_df = pd.DataFrame([pd.Series(industry_counts), pd.Series(rob_counts)]).transpose()
+    rv_df = pd.DataFrame([pd.Series(rv), pd.Series(industry_counts), pd.Series(rob_counts)]).transpose()
 
     return rv_df
 

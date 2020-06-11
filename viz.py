@@ -10,23 +10,30 @@ import numpy as np
 import pandas as pd
 
 
-def viz():
-
+def two_ind_viz():
+    """ Compares tseries of average growth rates of top manufacturing and information counties
+    """
     df = regressions.load_data("data/regression_data.csv") 
 
+    # get information counties
     top_info = df.sort_values("information", ascending=False)["information"]
     top_info = df.loc()[top_info.index[0:5]]
 
+    # get manufacuring counties
     top_manu = df.sort_values("manufacturing", ascending=False)["manufacturing"] 
     top_manu = df.loc()[top_manu.index[0:5]]
 
+    # take first 40 days
     top_info1 = top_info[top_info.columns[1:40]] 
     top_manu1 = top_manu[top_manu.columns[1:40]] 
+
+    # control for population
     temp_dict = {
         "Information": top_info1.mean() /top_info["population"].mean(),
         "Manufacturing": top_manu1.mean()/top_manu["population"].mean()}
     final_df = pd.DataFrame(temp_dict)
 
+    # plot
     plt.close()
     sbn.lineplot(data=final_df)
     plt.axes().set_xticks(np.arange(1, 40, 5))
@@ -41,20 +48,23 @@ def viz():
 
 
 def time_series_top():
+    """ Plots tseries of coefficients over time of top significant industries from the base model
     """
-    """
-    target_inds = ["manufacturing",
-        "administrative and support and waste management and remediation services",
+    # top industries
+    target_inds_l = ["management of companies and en...",
+        "administrative and support and...",
         "transportation and warehousing",
-        "mining, quarrying, and oil and gas extraction",
+        "educational services",
         "wholesale trade"]
-    target_inds = {k: [] for k in target_inds}
+    target_inds = {k: [] for k in target_inds_l}
 
+    # get coefficients from regression
     df = regressions.load_data("data/regression_data.csv")
-    models, sig = regressions.model_1(df)
-    sig_df = pd.DataFrame(sig).set_index(0)
-    sig_counts = sig_df.loc()[target_inds]
+    models, rob, sig = regressions.model_1(df)
+    sig_df = pd.DataFrame(sig).drop(sig.columns[-1], axis=1)
+    sig_counts = sig_df.loc()[target_inds_l]
 
+    # pull coefficients from each model for each industry/day
     for model in models:
         for ind, val in model.params[target_inds].items():
             target_inds[ind] += [val]
@@ -66,7 +76,7 @@ def time_series_top():
     sbn.lineplot([0, 49], [0, 0], color='k', linestyle='-', linewidth=2)
     plt.ylabel("Coefficient")
     plt.xlabel("Day")
-    plt.title("Affects of some industries on COVID spread")
+    plt.title("Affects of some industries on COVID spread (Base)")
 
     inds_df = inds_df.apply(keep_largest, axis=0,  args=[sig_counts])
     sbn.scatterplot(data=inds_df, s=100)
@@ -75,19 +85,20 @@ def time_series_top():
 
 
 def time_series_top_lockdown():
+    """ Plots tseries of coefficients over time of top significant industries from the lockdown model
     """
-    """
-    target_inds = ["manufacturing",
-        "administrative and support and waste management and remediation services",
+    target_inds_l = ["management of companies and en...",
+        "administrative and support and...",
         "transportation and warehousing",
-        "mining, quarrying, and oil and gas extraction",
+        "manufacturing",
         "wholesale trade"]
-    target_inds = {k: [] for k in target_inds}
+    target_inds = {k: [] for k in target_inds_l}
 
     df = regressions.load_data("data/regression_data.csv")
-    models, sig = regressions.model_lockdown(df)
-    sig_df = pd.DataFrame(sig).set_index(0)
-    sig_counts = sig_df.loc()[target_inds]
+    models, rob, sig = regressions.model_lockdown(df)
+    sig_df = pd.DataFrame(sig).drop(sig.columns[-1], axis=1)
+    print(sig_df)
+    sig_counts = sig_df.loc()[target_inds_l]
 
     for model in models:
         for ind, val in model.params[target_inds].items():
@@ -100,7 +111,7 @@ def time_series_top_lockdown():
     sbn.lineplot([0, 49], [0, 0], color='k', linestyle='-', linewidth=2)
     plt.ylabel("Coefficient")
     plt.xlabel("Day")
-    plt.title("Affects of some industries on COVID spread")
+    plt.title("Affects of some industries on COVID spread (Lockdown)")
 
     inds_df = inds_df.apply(keep_largest, axis=0,  args=[sig_counts])
     sbn.scatterplot(data=inds_df)
@@ -110,11 +121,11 @@ def time_series_top_lockdown():
 
 
 def keep_largest(col, sig_counts):
-    """ helper to get top days in pandas
+    """ helper to get significant days so we can make a scatterplot of just the significant days
     """
+    # sort and set all values below alpha significance cutoff to NaN (so they wont be plotted)
     ordered = sorted(np.abs(col), reverse=True)
-    cutoff = ordered[sig_counts.loc()[col.name][1]]
-
+    cutoff = ordered[int(sig_counts.loc()[col.name][1])]
     col[np.abs(col) < cutoff] = np.nan
 
     return col
