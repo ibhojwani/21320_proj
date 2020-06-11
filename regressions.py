@@ -107,28 +107,31 @@ def run_regs(reg_dat, df, mod_name):
         Y = reg_dat["Y"]
         reg_dat = reg_dat.drop("Y", axis=1)
 
-        # regress and do robust check on significant vars, and store list of
-        # signif industires
+        # regress and store list of signif industires
         mod = sm.OLS(Y, reg_dat)
         results = mod.fit()
         signif_vars, signif_coefs = get_sig_industries(results)
-
-        temp_dat = reg_dat[signif_vars]
-        mod = sm.OLS(Y, temp_dat)
-        rob_res = mod.fit()
-        rob_vars, rob_coefs = get_sig_industries(rob_res)
-
-        # store results
-        robust.append(rob_res)
+        
+        # store results and write to table
         models.append(results)
-
+        
         signif_vars_d[day] = signif_vars
         signif_coefs_d[day] = signif_coefs
 
-        rob_vars_d[day] = rob_vars
-
         write_table(results, day, mod_name)
-        write_table(rob_res, day, mod_name + "robustness")
+
+        # do the same for robustness estimate
+        if len(signif_vars):
+            temp_dat = reg_dat[signif_vars]
+            mod = sm.OLS(Y, temp_dat)
+            rob_res = mod.fit()
+            rob_vars, rob_coefs = get_sig_industries(rob_res)
+            
+            robust.append(rob_res)
+            
+            rob_vars_d[day] = rob_vars
+
+            write_table(rob_res, day, mod_name + "robustness")
 
     return models, robust, signif_vars_d, signif_coefs_d, rob_vars_d
 
